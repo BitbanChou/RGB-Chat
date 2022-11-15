@@ -1,0 +1,65 @@
+{
+  "type": "minecraft:crafting_shaped",
+
+  "pattern":
+  [
+    "ABC",
+    "DEF",
+    "GHI"
+  ],
+
+  "key":
+  {
+    "A":
+    {
+      "item": "minecraft:dye",
+      "data": 0
+    },
+    "B":
+    {
+      "item": "minecraft:dye",
+      "data": 1
+    },
+    "C":
+    {
+      "item": "minecraft:dye",
+      "data": 2
+    },
+    "D":
+    {
+      "item": "minecraft:dye",
+      "data": 3
+    },
+    "E":
+    {
+      "item": "minecraft:dye",
+      "data": 4
+    },
+    "F":
+    {
+      "item": "minecraft:dye",
+      "data": 5
+    },
+    "H":
+    {
+      "item": "minecraft:dye",
+      "data": 7
+    },
+    "I":
+    {
+      "item": "minecraft:dye",
+      "data": 8
+    },
+    "G":
+    {
+      "item": "minecraft:dye",
+      "data": 6
+    }
+  },
+
+  "result":
+  {
+    "item": "jianghun:ore",
+    "count": 1
+  }
+}

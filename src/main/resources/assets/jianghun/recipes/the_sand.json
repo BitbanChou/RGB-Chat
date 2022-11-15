@@ -1,0 +1,24 @@
+{
+  "type": "minecraft:crafting_shaped",
+
+  "pattern":
+  [
+    "AAA",
+    "AAA",
+    "AAA"
+  ],
+
+  "key":
+  {
+    "A":
+    {
+      "item": "jianghun:ore"
+    }
+  },
+
+  "result":
+  {
+    "item": "jianghun:the_sand",
+    "count": 1
+  }
+}
