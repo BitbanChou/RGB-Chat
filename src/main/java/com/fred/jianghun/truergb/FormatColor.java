@@ -1,10 +1,3 @@
-/*
- * Decompiled with CFR 0.152.
- * 
- * Could not load the following classes:
- *  net.minecraft.client.Minecraft
- *  net.minecraft.util.text.TextFormatting
- */
 package com.fred.jianghun.truergb;
 
 import com.fred.jianghun.truergb.IColor;
