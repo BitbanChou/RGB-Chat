@@ -1,15 +1,3 @@
-/*
- * Decompiled with CFR 0.152.
- * 
- * Could not load the following classes:
- *  javax.annotation.ParametersAreNonnullByDefault
- *  mcp.MethodsReturnNonnullByDefault
- *  net.minecraft.client.gui.FontRenderer
- *  net.minecraft.client.renderer.texture.TextureManager
- *  net.minecraft.client.settings.GameSettings
- *  net.minecraft.util.ResourceLocation
- *  net.minecraft.util.Tuple
- */
 package com.fred.jianghun.truergb;
 
 import com.fred.jianghun.truergb.IColor;
