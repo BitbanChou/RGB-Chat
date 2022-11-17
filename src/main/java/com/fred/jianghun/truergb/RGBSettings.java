@@ -1,95 +1,23 @@
-/*
- * Decompiled with CFR 0.152.
- * 
- * Could not load the following classes:
- *  javax.annotation.Nullable
- *  net.minecraft.util.Tuple
- *  net.minecraft.util.text.TextFormatting
- */
 package com.fred.jianghun.truergb;
-
-import com.fred.jianghun.truergb.Colors;
-import com.fred.jianghun.truergb.IColor;
-import com.fred.jianghun.truergb.SimpleColor;
-import com.fred.jianghun.truergb.Utils;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.function.Function;
-import java.util.function.ToIntFunction;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.annotation.Nullable;
-import net.minecraft.util.Tuple;
+import java.util.function.ToIntFunction;
 import net.minecraft.util.text.TextFormatting;
+import java.util.regex.Matcher;
+import java.util.stream.Collector;
+import java.util.stream.Collectors;
+import java.util.function.Function;
+import java.util.Arrays;
+import java.util.ArrayList;
+import java.util.Collections;
+import net.minecraft.util.Tuple;
+import java.util.List;
+import java.util.regex.Pattern;
 
-public class RGBSettings {
-    public static RGBSettings EMPTY = new RGBSettings(Collections.emptyList()){
-
-        @Override
-        @Nullable
-        public SimpleColor getColorAt(int index) {
-            return null;
-        }
-
-        @Override
-        public int getLength() {
-            return 0;
-        }
-
-        @Override
-        public void addLength(int toAdd) {
-        }
-
-        @Override
-        public void setBold(Boolean bold) {
-        }
-
-        @Override
-        public void setItalic(Boolean italic) {
-        }
-
-        @Override
-        public void setUnderlined(Boolean underlined) {
-        }
-
-        @Override
-        public void setStrikethrough(Boolean strikethrough) {
-        }
-
-        @Override
-        public void setObfuscated(Boolean obfuscated) {
-        }
-
-        @Override
-        public Boolean getBold() {
-            return null;
-        }
-
-        @Override
-        public Boolean getItalic() {
-            return null;
-        }
-
-        @Override
-        public Boolean getUnderlined() {
-            return null;
-        }
-
-        @Override
-        public Boolean getStrikethrough() {
-            return null;
-        }
-
-        @Override
-        public Boolean getObfuscated() {
-            return null;
-        }
-    };
-    public static final Pattern PATTERN = Pattern.compile("(#(?<rgb>([0-9a-fA-F]{8})(-([0-9a-fA-F]{8}))*)|\u00a7(?<format>[0-9a-fA-FklmnorKLMNOR]))");
+public class RGBSettings
+{
+    public static RGBSettings EMPTY;
+    public static final Pattern PATTERN;
     private final List<IColor> colors;
     private int length;
     private Boolean bold;
@@ -98,232 +26,96 @@ public class RGBSettings {
     private Boolean strikethrough;
     private Boolean obfuscated;
 
-    public static List<Tuple<String, RGBSettings>> split(String string) {
+    public static List<Tuple<String, RGBSettings>> split(final String string) {
         if (string == null || string.isEmpty()) {
-            return Collections.singletonList(new Tuple((Object)"", (Object)EMPTY));
+            return Collections.singletonList(new Tuple((Object)"", (Object)RGBSettings.EMPTY));
         }
         int index = 0;
-        ArrayList<Tuple<String, RGBSettings>> result = new ArrayList<Tuple<String, RGBSettings>>();
-        Matcher matcher = PATTERN.matcher(string);
-        RGBSettings lastSettings = EMPTY;
+        final List<Tuple<String, RGBSettings>> result = new ArrayList<Tuple<String, RGBSettings>>();
+        final Matcher matcher = RGBSettings.PATTERN.matcher(string);
+        RGBSettings lastSettings = RGBSettings.EMPTY;
         while (index < string.length()) {
-            String subString;
-            if (matcher.find(index)) {
-                String format;
-                subString = string.substring(index, matcher.start());
-                if (!subString.isEmpty()) {
-                    lastSettings.addLength(subString.length());
-                    result.add((Tuple<String, RGBSettings>)new Tuple((Object)subString, (Object)lastSettings));
-                }
-                if ((format = matcher.group()).startsWith("#")) {
-                    String fString = matcher.group("rgb");
-                    lastSettings = new RGBSettings(Arrays.stream(fString.split("-")).map(Colors::of).collect(Collectors.toList()));
-//                    for(IColor x:Arrays.stream(fString.split("-")).map(Colors::of).collect(Collectors.toList()))
-//                        System.out.println(x);
-                }
-                else if (format.startsWith("\u00a7")) {
-                    TextFormatting formatting = Utils.formattingOf(format.charAt(1));
-                    if (formatting == null) {
-                        throw new NullPointerException("Format: " + format);
-                    }
-                    lastSettings = lastSettings.withFormat(formatting);
-                }
-                else {
+            if (!matcher.find(index)) {
+                final String subString = string.substring(index);
+                lastSettings.addLength(subString.length());
+                result.add((Tuple<String, RGBSettings>)new Tuple((Object)subString, (Object)lastSettings));
+                break;
+            }
+            final String subString = string.substring(index, matcher.start());
+            if (!subString.isEmpty()) {
+                lastSettings.addLength(subString.length());
+                result.add((Tuple<String, RGBSettings>)new Tuple((Object)subString, (Object)lastSettings));
+            }
+            final String format = matcher.group();
+            if (format.startsWith("#")) {
+                final String fString = matcher.group("rgb");
+                lastSettings = new RGBSettings((List<IColor>)Arrays.stream(fString.split("-")).map(Colors::of).collect(Collectors.toList()));
+            }
+            else {
+                if (!format.startsWith("§")) {
                     throw new IllegalStateException("Format: " + format);
                 }
-                index = matcher.end();
-                continue;
+                final TextFormatting formatting = Utils.formattingOf(format.charAt(1));
+                if (formatting == null) {
+                    throw new NullPointerException("Format: " + format);
+                }
+                lastSettings = lastSettings.withFormat(formatting);
             }
-            subString = string.substring(index);
-            lastSettings.addLength(subString.length());
-            result.add((Tuple<String, RGBSettings>)new Tuple((Object)subString, (Object)lastSettings));
-            break;
+            index = matcher.end();
         }
-//        System.out.println(lastSettings);
-
-//        for(IColor x:result.get(0).getSecond().colors)
-//            System.out.println(x.toInt());
         return result;
     }
 
-    public static int hexToInteger(String s)
-    {
-        int ans=0,k=1;
-        for(int i=5;i>=0;i--)
-        {
-            if(s.charAt(i)>='0' && s.charAt(i)<='9') ans+=k*(s.charAt(i)-'0');
-            else if(s.charAt(i)>='a' && s.charAt(i)<='z'){
-                ans+=k*((s.charAt(i)-'a')+10);
-            }
-            else{
-                ans+=k*((s.charAt(i)-'A')+10);
-            }
-            k*=16;
-        }
-        return ans;
-    }
-
-
-    public static List<Tuple<String, RGBSettings>> split2(String string) {
-        if (string == null || string.isEmpty()) {
-            return Collections.singletonList(new Tuple((Object)"", (Object)EMPTY));
-        }
-
-        ArrayList<Tuple<String, RGBSettings>> result = new ArrayList<Tuple<String, RGBSettings>>();
-        String subString="";
-        List<String> colorSet=new ArrayList<>();
-        int index = 0,len=string.length();
-
-        for(int i=0;i<len;i++)
-        {
-            if(colorSet.size()<1 && string.charAt(i)=='#')
-            {
-                int j=i+1,flag=0;
-                String oneColor="";
-                while(j<len)
-                {
-                    if(oneColor.length()<8 && (string.charAt(j)>='0' && string.charAt(j)<='9'
-                            || string.charAt(j)>='a' && string.charAt(j)<='z' || string.charAt(j)>='A' && string.charAt(j)<='Z')) {
-                        oneColor += string.charAt(j);
-                        j++;
-                    }
-                    if(oneColor.length()==8)
-                    {
-                        flag=1;
-                        colorSet.add(oneColor);
-                        i=j-1;
-                        break;
-                    }
-                }
-                if(flag==0)
-                {
-                    RGBSettings lastSettings = new RGBSettings(SimpleColor.of("FFFFFFFF"));
-                    lastSettings.addLength(1);
-                    result.add((Tuple<String, RGBSettings>)new Tuple((Object)string.substring(i,i+1),lastSettings));
-                }
-            }
-            else if(colorSet.size()>0 && string.charAt(i)=='-')
-            {
-                int j=i+1,flag=0;
-                String oneColor="";
-                while(j<len)
-                {
-                    if(oneColor.length()<8 && (string.charAt(j)>='0' && string.charAt(j)<='9'
-                            || string.charAt(j)>='a' && string.charAt(j)<='z' || string.charAt(j)>='A' && string.charAt(j)<='Z')) {
-                        oneColor += string.charAt(j);
-                        j++;
-                    }
-                    if(oneColor.length()==8)
-                    {
-                        flag=1;
-                        colorSet.add(oneColor);
-                        i=j-1;
-                        break;
-                    }
-                }
-                if(flag==0)
-                {
-                    RGBSettings lastSettings = new RGBSettings(SimpleColor.of("FFFFFFFF"));
-                    lastSettings.addLength(1);
-                    result.add((Tuple<String, RGBSettings>)new Tuple((Object)string.substring(i,i+1),lastSettings));
-                }
-            }
-            else{
-                int j=i;
-                String target="";
-                while(j<len)
-                {
-                    if(string.charAt(j)!='#')
-                    {
-                        target+=string.charAt(j);
-                        j++;
-                    }
-                }
-                if(colorSet.size()>1)
-                {
-                    int partlen=target.length()/(colorSet.size()-1);
-                    int part=target.length()/partlen-1;
-                    for(int k=0;k<target.length();k++)
-                    {
-                        int p=Math.min(part,k/partlen);
-                        int ca=hexToInteger(colorSet.get(p+1).substring(2)),cb=hexToInteger(colorSet.get(p).substring(2));
-                        int d=Math.abs((cb-ca))/partlen;
-                        String thisWordColor="";
-                        if(ca>cb) thisWordColor=colorSet.get(p).substring(0,2)+Integer.toHexString(cb+(k%partlen)*d);
-                        else thisWordColor=colorSet.get(p).substring(0,2)+Integer.toHexString(cb-(k%partlen)*d);
-
-                        RGBSettings lastSettings = new RGBSettings(SimpleColor.of(thisWordColor));
-                        lastSettings.addLength(1);
-                        result.add((Tuple<String, RGBSettings>)new Tuple((Object)target.substring(k,k+1),lastSettings));
-                    }
-                    colorSet.clear();
-                }
-                else if(colorSet.size()==1)
-                {
-                    RGBSettings lastSettings = new RGBSettings(SimpleColor.of(colorSet.get(0)));
-                    lastSettings.addLength(target.length());
-                    result.add((Tuple<String, RGBSettings>)new Tuple((Object)target,lastSettings));
-                    colorSet.clear();
-                }
-                else{
-                    RGBSettings lastSettings = new RGBSettings(SimpleColor.of("FFFFFFFF"));
-                    lastSettings.addLength(1);
-                    result.add((Tuple<String, RGBSettings>)new Tuple((Object)target,lastSettings));
-                }
-                //System.out.println(j+" "+len);
-                if(j==len) break;
-                i=j-1;
-            }
-        }
-
-        //System.out.println(lastSettings);
-        return result;
-    }
-
-
-    public RGBSettings(IColor color) {
+    public RGBSettings(final IColor color) {
         this(Collections.singletonList(color));
     }
 
-    public RGBSettings(List<IColor> colors) {
+    public RGBSettings(final List<IColor> colors) {
         this.colors = colors;
     }
 
-    protected int warpIndex(int index) {
+    protected int warpIndex(final int index) {
         return index;
     }
 
     @Nullable
-    public IColor getColorAt(int index) {
-        IColor post;
-        int postIndex;
-        int colorsLength = this.colors.size();
+    public IColor getColorAt(final int index) {
+        final int colorsLength = this.colors.size();
         if (colorsLength == 0) {
             return null;
         }
         if (colorsLength == 1) {
             return this.colors.get(0);
         }
-        int warpedIndex = this.warpIndex(index);
-        int preIndex = Math.max(0, Math.min(colorsLength - 1, (colorsLength - 1) * warpedIndex / Math.max(1, this.getLength() - 1)));
-        float percent = preIndex == (postIndex = Math.max(0, Math.min(colorsLength - 1, preIndex + 1))) ? 0.0f : Math.max(0.0f, Math.min(1.0f, (float)(warpedIndex * (colorsLength - 1) - this.getLength() * preIndex) / ((float)(postIndex - preIndex) * (float)this.getLength())));
-        IColor pre = this.colors.get(preIndex);
-        if (pre.equals(post = this.colors.get(postIndex))) {
+        final int warpedIndex = this.warpIndex(index);
+        final int preIndex = Math.max(0, Math.min(colorsLength - 1, (colorsLength - 1) * warpedIndex / Math.max(1, this.getLength() - 1)));
+        final int postIndex = Math.max(0, Math.min(colorsLength - 1, preIndex + 1));
+        float percent;
+        if (preIndex == postIndex) {
+            percent = 0.0f;
+        }
+        else {
+            percent = Math.max(0.0f, Math.min(1.0f, (warpedIndex * (colorsLength - 1) - this.getLength() * preIndex) / ((postIndex - preIndex) * (float)this.getLength())));
+        }
+        final IColor pre = this.colors.get(preIndex);
+        final IColor post = this.colors.get(postIndex);
+        if (pre.equals(post)) {
             return pre;
         }
-        ToIntFunction<ToIntFunction> mix = toIni -> Math.round((float)toIni.applyAsInt(pre) * (1.0f - percent) + (float)toIni.applyAsInt(post) * percent);
-        return new SimpleColor(this.colors.get(0).red(),this.colors.get(0).green(),this.colors.get(0).blue());
+
+        final ToIntFunction<ToIntFunction<IColor>> mix = toIni -> Math.round(toIni.applyAsInt(pre) * (1.0f - percent) + toIni.applyAsInt(post) * percent);
+        return new SimpleColor(mix.applyAsInt(IColor::red), mix.applyAsInt(IColor::green), mix.applyAsInt(IColor::blue));
     }
 
-    public RGBSettings withFormat(TextFormatting formatting) {
+    public RGBSettings withFormat(final TextFormatting formatting) {
         if (formatting.isColor()) {
             return new RGBSettings(Colors.of(formatting));
         }
         if (formatting.isFancyStyling()) {
-            return new WithFormat(this, formatting);
+            return new WithFormat(this, new TextFormatting[] { formatting });
         }
         if (formatting == TextFormatting.RESET) {
-            return EMPTY;
+            return RGBSettings.EMPTY;
         }
         throw new IllegalStateException(formatting.toString());
     }
@@ -336,31 +128,31 @@ public class RGBSettings {
         return this.length;
     }
 
-    public void addLength(int toAdd) {
+    public void addLength(final int toAdd) {
         this.length += toAdd;
     }
 
-    public void setBold(Boolean bold) {
+    public void setBold(final Boolean bold) {
         this.bold = bold;
     }
 
-    public void setItalic(Boolean italic) {
+    public void setItalic(final Boolean italic) {
         this.italic = italic;
     }
 
-    public void setUnderlined(Boolean underlined) {
+    public void setUnderlined(final Boolean underlined) {
         this.underlined = underlined;
     }
 
-    public void setStrikethrough(Boolean strikethrough) {
+    public void setStrikethrough(final Boolean strikethrough) {
         this.strikethrough = strikethrough;
     }
 
-    public void setObfuscated(Boolean obfuscated) {
+    public void setObfuscated(final Boolean obfuscated) {
         this.obfuscated = obfuscated;
     }
 
-    public Boolean getFormatState(TextFormatting formatting) {
+    public Boolean getFormatState(final TextFormatting formatting) {
         switch (formatting) {
             case BOLD: {
                 return this.getBold();
@@ -377,8 +169,10 @@ public class RGBSettings {
             case OBFUSCATED: {
                 return this.getObfuscated();
             }
+            default: {
+                return null;
+            }
         }
-        return null;
     }
 
     public Boolean getBold() {
@@ -402,55 +196,121 @@ public class RGBSettings {
     }
 
     public String getFormatString() {
+        //return Stream.of(new TextFormatting[] { TextFormatting.BOLD, TextFormatting.ITALIC, TextFormatting.UNDERLINE, TextFormatting.STRIKETHROUGH, TextFormatting.OBFUSCATED }).filter(formatting -> this.getFormatState(formatting) == Boolean.TRUE).map((Function<? super TextFormatting, ?>)TextFormatting::toString).collect(Collectors.joining());
         return Stream.of(TextFormatting.BOLD, TextFormatting.ITALIC, TextFormatting.UNDERLINE, TextFormatting.STRIKETHROUGH, TextFormatting.OBFUSCATED).filter(formatting -> this.getFormatState((TextFormatting)formatting) == Boolean.TRUE).map(TextFormatting::toString).collect(Collectors.joining());
     }
 
-    private static class WithFormat
-    extends RGBSettings {
+    static {
+        RGBSettings.EMPTY = new RGBSettings(Collections.emptyList()) {
+            @Nullable
+            @Override
+            public SimpleColor getColorAt(final int index) {
+                return null;
+            }
+
+            @Override
+            public int getLength() {
+                return 0;
+            }
+
+            @Override
+            public void addLength(final int toAdd) {
+            }
+
+            @Override
+            public void setBold(final Boolean bold) {
+            }
+
+            @Override
+            public void setItalic(final Boolean italic) {
+            }
+
+            @Override
+            public void setUnderlined(final Boolean underlined) {
+            }
+
+            @Override
+            public void setStrikethrough(final Boolean strikethrough) {
+            }
+
+            @Override
+            public void setObfuscated(final Boolean obfuscated) {
+            }
+
+            @Override
+            public Boolean getBold() {
+                return null;
+            }
+
+            @Override
+            public Boolean getItalic() {
+                return null;
+            }
+
+            @Override
+            public Boolean getUnderlined() {
+                return null;
+            }
+
+            @Override
+            public Boolean getStrikethrough() {
+                return null;
+            }
+
+            @Override
+            public Boolean getObfuscated() {
+                return null;
+            }
+        };
+        PATTERN = Pattern.compile("(#(?<rgb>([0-9a-fA-F]{6})(-([0-9a-fA-F]{6}))*)|§(?<format>[0-9a-fA-FklmnorKLMNOR]))");
+    }
+
+    private static class WithFormat extends RGBSettings
+    {
         private final RGBSettings parent;
         private final int startIndex;
 
-        public WithFormat(RGBSettings parent) {
+        public WithFormat(final RGBSettings parent) {
             super(parent.colors);
             this.parent = parent;
             this.startIndex = parent.getLength();
         }
 
-        public WithFormat(RGBSettings parent, TextFormatting ... formattingArray) {
+        public WithFormat(final RGBSettings parent, final TextFormatting... formattingArray) {
             this(parent);
-            block7: for (TextFormatting formatting : formattingArray) {
+            for (final TextFormatting formatting : formattingArray) {
                 switch (formatting) {
                     case OBFUSCATED: {
                         this.setObfuscated(true);
-                        continue block7;
+                        break;
                     }
                     case BOLD: {
                         this.setBold(true);
-                        continue block7;
+                        break;
                     }
                     case STRIKETHROUGH: {
                         this.setStrikethrough(true);
-                        continue block7;
+                        break;
                     }
                     case UNDERLINE: {
                         this.setUnderlined(true);
-                        continue block7;
+                        break;
                     }
                     case ITALIC: {
                         this.setItalic(true);
-                        continue block7;
+                        break;
                     }
                 }
             }
         }
 
         @Override
-        protected int warpIndex(int index) {
+        protected int warpIndex(final int index) {
             return this.startIndex + index;
         }
 
         @Override
-        public void addLength(int toAdd) {
+        public void addLength(final int toAdd) {
             this.parent.addLength(toAdd);
         }
 
@@ -459,8 +319,8 @@ public class RGBSettings {
             return this.parent.getLength();
         }
 
-        private Boolean getFlag(Function<RGBSettings, Boolean> getter) {
-            Boolean flag = getter.apply(this);
+        private Boolean getFlag(final Function<RGBSettings, Boolean> getter) {
+            final Boolean flag = getter.apply(this);
             if (flag == null) {
                 return getter.apply(this.parent);
             }
@@ -469,28 +329,27 @@ public class RGBSettings {
 
         @Override
         public Boolean getBold() {
-            return this.getFlag(rgbSettings -> ((RGBSettings)rgbSettings).bold);
+            return this.getFlag(rgbSettings -> rgbSettings.bold);
         }
 
         @Override
         public Boolean getItalic() {
-            return this.getFlag(rgbSettings -> ((RGBSettings)rgbSettings).italic);
+            return this.getFlag(rgbSettings -> rgbSettings.italic);
         }
 
         @Override
         public Boolean getUnderlined() {
-            return this.getFlag(rgbSettings -> ((RGBSettings)rgbSettings).underlined);
+            return this.getFlag(rgbSettings -> rgbSettings.underlined);
         }
 
         @Override
         public Boolean getStrikethrough() {
-            return this.getFlag(rgbSettings -> ((RGBSettings)rgbSettings).strikethrough);
+            return this.getFlag(rgbSettings -> rgbSettings.strikethrough);
         }
 
         @Override
         public Boolean getObfuscated() {
-            return this.getFlag(rgbSettings -> ((RGBSettings)rgbSettings).obfuscated);
+            return this.getFlag(rgbSettings -> rgbSettings.obfuscated);
         }
     }
 }
-
